@@ -1,0 +1,8 @@
+// helper to read body
+    let body = "";
+
+    req.on("data", chunk => {
+        body += chunk;
+    });
+
+    req.on("end", () => {

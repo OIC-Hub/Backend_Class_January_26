@@ -1,0 +1,45 @@
+What is really happening?
+
+When a client sends data to the server (POST, PUT, DELETE):
+
+{
+  "name": "Samuel",
+  "subject": "Math"
+}
+
+Node.js does NOT receive this data in one piece.
+
+Instead, Node.js receives it in small pieces called chunks.
+
+
+Think of it like WhatsApp voice notes
+
+Imagine someone sends you a long voice note:
+
+It doesn’t arrive instantly
+
+It comes in parts
+
+Your phone joins the parts together before playing it
+Chunks work the same way
+
+
+let body = "";
+
+req.on("data", chunk => {
+    body += chunk;
+});
+
+Line-by-line explanation:
+
+req.on("data")
+
+This listens for incoming data
+
+chunk
+
+A small piece of the request body
+
+body += chunk
+
+We join all the pieces together
