@@ -1,6 +1,7 @@
 const http = require('http');
 const url = require('url')
 const data = require("./data")
+const bodyParser = require("body-parser")
 const PORT = 8000
 
 const app = http.createServer((req, res) => {
@@ -15,11 +16,13 @@ const app = http.createServer((req, res) => {
         body += chunk;
     })
 
+    res.setHeaders("Content-Type", "application/json");
 
     req.on("end", () => {
         
     if(pathname === "/hello" && req.method === "GET"){
-        res.end("hello world")
+        res.statusCode = 200;
+        res.end(JSON.stringify({message: "hello world"}))
     }
 
     if(pathname === "/samuel" && req.method === "GET"){
@@ -44,6 +47,8 @@ const app = http.createServer((req, res) => {
         data.push(newStudent);
         res.end("student added sucessfully")
       } catch (error) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({message: "Internal Server error", error}))
         console.error(error)
       }
      
@@ -92,7 +97,12 @@ const app = http.createServer((req, res) => {
     }
     })
 
+    res.statusCode = 404;
+    res.end(JSON.stringify({message: "Not Found"}))
+
 })
+
+// app.use(bodyParser);
 
 app.listen(PORT, () => {
     console.log(`server running ${PORT}`)
