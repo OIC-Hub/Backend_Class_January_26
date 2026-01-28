@@ -10,8 +10,8 @@ const PORT = process.env.PORT;
 
 app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
-  res.send("hello world");
+app.get("/student", (req, res) => {
+  res.status(200).json({message: "Student Fetched sucessfully", Student});
 });
 
 app.post("/add", (req, res) => {
@@ -28,32 +28,57 @@ app.post("/add", (req, res) => {
   res.send(JSON.stringify({ message: "Student Added Successfully", Student }));
 });
 
-app.put("/update/:id", (res, req) => {
+app.put("/update/:id", (req, res) => {
   try {
     const { id } = req.params;
-    const studentId = Student.findIndex((item) => item.id === parseInt(id));
 
-    if (studentId === -1) {
-    res.status(404).json({message: "Not found"})
+    const studentIndex = Student.findIndex((item) => item.id === parseInt(id));
+
+    if (studentIndex === -1) {
+      return res.status(404).json({ message: "Student not found" });
     }
 
     const { name, subject } = req.body;
 
-    Student[studentId] = {
-      ...Student[studentId],
-      name: name,
-      subject: subject,
+    Student[studentIndex] = {
+      ...Student[studentIndex],
+      name,
+      subject,
     };
 
     res.status(200).json({
-      message: "Student Updated Successfully",
-      Student,
+      message: "Student updated successfully",
+      data: Student[studentIndex],
     });
   } catch (error) {
-    res.status(500).json({message: "Interal Server Error", error})
+    res.status(500).json({
+      message: "Internal Server Error",
+      error,
+    });
+  }
+});
+
+app.delete("/delete/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const studentIndex = Student.findIndex((item) => item.id === parseInt(id));
+
+
+    if (studentIndex !== -1) {
+      Student.splice(studentIndex, 1);
+      return res.status(200).json({ message: "deleted successfully", Student });
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+       res.status(500).json({
+      message: "Internal Server Error",
+      error,
+    });
   }
 });
 
 app.listen(PORT, () => {
-  console.log("server is running");
+  console.log("server is running", PORT);
 });
