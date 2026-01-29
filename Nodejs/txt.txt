@@ -1,0 +1,38 @@
+app.post("/login", (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required",
+      });
+    }
+
+    // 2. Find user
+    const user = users.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    // 3. If user not found
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    // 4. Successful login
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal Server Error",
+      error,
+    });
+  }
+});
