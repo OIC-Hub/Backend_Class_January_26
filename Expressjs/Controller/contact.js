@@ -1,4 +1,5 @@
 const contact = require("../Model/data");
+const Product = require("../Model/product")
 
 function AddData(req, res) {
   
@@ -23,4 +24,22 @@ function getData(req, res) {
   }
 }
 
-module.exports = { AddData, getData };
+function AddProduct(req, res) {
+try {
+    const{productName, productImage, productPrice} = req.body;
+  
+  const newProduct = new Product ({
+    productName,
+    productImage,
+    productPrice,
+  })
+
+  newProduct.save();
+  res.status(200).json({message: "product added successfully"});
+} catch (error) {
+  console.error(error)
+}
+  
+}
+
+module.exports = { AddData, getData, AddProduct };
