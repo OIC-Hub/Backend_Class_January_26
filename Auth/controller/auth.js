@@ -6,15 +6,16 @@ dotenv.config();
 
 function registerUser(req, res) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const newUser = new User({
       name,
       email,
       password: bcrypt.hashSync(password, 10),
+      role
     });
 
     newUser.save();
@@ -42,7 +43,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    let token = jwt.sign({ id: userData._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    let token = jwt.sign({ id: userData._id, role: userData.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     res.status(200).json({ message: "Login successful", token });
 
