@@ -2,24 +2,28 @@ const User = require("../model/Auth");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const { sendEmail } = require("../service/mail");
 dotenv.config();
 
 function registerUser(req, res) {
   try {
     const { name, email, password, role } = req.body;
 
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const newUser = new User({
       name,
       email,
       password: bcrypt.hashSync(password, 10),
-      role
+      role,
+      otp: otp
     });
 
     newUser.save();
     res.status(201).json({ message: "User registered successfully" });
+    sendEmail(email, "OTP Verification", `Your OTP is: ${otp}`);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -76,9 +80,28 @@ const getUser = async (req, res) => {
   }
 };
 
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const userData = await User.findOne({ email });
+    if (!userData) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (userData.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
 module.exports = {
   registerUser,
     loginUser,
     getUser,
-    getProfile
+    getProfile,
+    verifyOTP
 };
