@@ -11,7 +11,7 @@ const PORT = process.env.PORT ;
 app.use(bodyParser.json()); 
 
 app.use("/api/auth", userRoute);
-
+app.set('view engine', 'ejs');
 connectDB();
 
 app.listen(PORT, () => {

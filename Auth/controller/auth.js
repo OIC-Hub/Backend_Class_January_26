@@ -73,11 +73,13 @@ const getProfile = async (req, res) => {
 
 const getUser = async (req, res) => {
   try {
-    const allUser = await User.find();
-    res.status(200).json({ message: "User", allUser });
+    const allUser = await User.find(); 
+    res.render("home", { allUser });   
   } catch (error) {
     console.error(error);
+    res.status(500).send("Error loading page");
   }
+
 };
 
 const verifyOTP = async (req, res) => {
@@ -98,10 +100,15 @@ const verifyOTP = async (req, res) => {
   }
 }
 
+// function homepage(req, res) {
+//   res.render("home");
+// }
+
 module.exports = {
   registerUser,
     loginUser,
     getUser,
     getProfile,
-    verifyOTP
+    verifyOTP,
+    // homepage
 };
