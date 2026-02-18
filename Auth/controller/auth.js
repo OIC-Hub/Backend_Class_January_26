@@ -22,8 +22,11 @@ function registerUser(req, res) {
     });
 
     newUser.save();
-    res.status(201).json({ message: "User registered successfully" });
+    // res.status(201).json({ message: "User registered successfully" });
     sendEmail(email, "OTP Verification", `Your OTP is: ${otp}`);
+    // res.render("verifyotp", { email });
+    res.redirect("/verifyotp");
+    console.log(otp);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -31,40 +34,41 @@ function registerUser(req, res) {
 }
 
 const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+    try {
+        const { email, password } = req.body;
+        const userData = await User.findOne({ email });
+
+        if (!userData || !(await bcrypt.compare(password, userData.password))) {
+            // If it's a form submission, you might want to render login with an error message
+            return res.status(401).render("login", { error: "Invalid credentials" });
+        }
+
+        const token = jwt.sign({ id: userData._id, role: userData.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        
+        res.cookie("token", token, {
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === "production", 
+            maxAge: 3600000 // 1 hour in milliseconds
+        });
+
+        res.redirect("/api/auth/profile");
+    } catch (error) {
+        res.status(500).send("Server error");
     }
-    const userData = await User.findOne({ email });
-    if (!userData) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    
-    const isPasswordValid = await bcrypt.compareSync(password, userData.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    let token = jwt.sign({ id: userData._id, role: userData.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-    res.status(200).json({ message: "Login successful", token });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
+
 
 const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const userData = await User.findById(userId).select("-password");
-    if (!userData) {
-      return res.status(404).json({ message: "User not found" });
+      if (!userData) {
+      return res.redirect("/login");
     }
-    res.status(200).json({ message: "User profile", userData });
+
+    // This correctly passes the data to EJS
+    res.render("dashboard", { userData });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -93,22 +97,39 @@ const verifyOTP = async (req, res) => {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    res.status(200).json({ message: "OTP verified successfully" });
+    // res.status(200).json({ message: "OTP verified successfully" });
+    res.redirect("/login");
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 }
 
-// function homepage(req, res) {
-//   res.render("home");
+
+
+// function dashboard(req, res) {
+//   res.render("dashboard");
 // }
 
+function loginpage(req, res) {
+  res.render("login");
+}
+
+function registerpage(req, res) {
+  res.render("register");
+}
+
+function otpPage(req, res) {
+  res.render("verifyotp");
+}
 module.exports = {
   registerUser,
     loginUser,
     getUser,
     getProfile,
     verifyOTP,
+    loginpage,
+    registerpage,
+    otpPage,
     // homepage
 };
